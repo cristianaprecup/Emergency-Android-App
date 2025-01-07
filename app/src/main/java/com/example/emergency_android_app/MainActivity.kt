@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Button // Add this import to work with Button
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -27,6 +28,9 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.CALL_PHONE
     )
     private val permissionsRequestCode = 1
+
+    // Declare the manage profile button
+    private lateinit var manageProfileButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +57,15 @@ class MainActivity : AppCompatActivity() {
             } else {
                 requestPermissions()
             }
+        }
+
+        // Initialize the "Manage Profile" button
+        manageProfileButton = findViewById(R.id.manageProfile)
+
+        // Set up the OnClickListener to navigate to ProfileActivity
+        manageProfileButton.setOnClickListener {
+            val intent = Intent(this, ProfileActivity::class.java)
+            startActivity(intent)
         }
 
         if (!allPermissionsGranted()) {

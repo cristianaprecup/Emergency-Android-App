@@ -125,7 +125,7 @@
         android:textColor="#000"
         android:background="@drawable/manage_contacts_background"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp" />
+        android:paddingVertical="7dp" />
 
 
 </RelativeLayout>
