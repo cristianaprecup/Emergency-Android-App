@@ -1,10 +1,12 @@
 package com.example.emergency_android_app
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Button // Add this import to work with Button
@@ -21,6 +23,10 @@ class MainActivity : AppCompatActivity() {
     private var locationDialog: AlertDialog? = null
     private lateinit var helpButton: FrameLayout
     private val savedContacts = listOf("1234567890", "0987654321") // hardcoded for now
+    private lateinit var addContactButton: Button
+    private val contactsList = mutableListOf("1234567890", "0987654321")
+    private val addContactRequestCode = 1
+    private lateinit var manageContactsButton: Button
 
     private val requiredPermissions = arrayOf(
         Manifest.permission.SEND_SMS,
@@ -35,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
 
         locationServicesStatus = findViewById(R.id.locationServicesStatus)
         locationServicesLabel = findViewById(R.id.locationServicesLabel)
@@ -71,6 +78,14 @@ class MainActivity : AppCompatActivity() {
         if (!allPermissionsGranted()) {
             requestPermissions()
         }
+
+        manageContactsButton = findViewById(R.id.manageContactsButton)
+        manageContactsButton.setOnClickListener {
+
+        val intent = Intent(this, ContactsActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     private fun handleLocationStatusChange(isLocationEnabled: Boolean) {
@@ -125,9 +140,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
@@ -151,6 +164,22 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == addContactRequestCode && resultCode == Activity.RESULT_OK) {
+            val contactName = data?.getStringExtra("contact_name")
+            val contactPhone = data?.getStringExtra("contact_phone")
+            if (contactName != null && contactPhone != null) {
+                contactsList.add(contactPhone)
+                refreshContactsList()
+            }
+        }
+    }
+
+    private fun refreshContactsList() {
     }
 
     override fun onDestroy() {
