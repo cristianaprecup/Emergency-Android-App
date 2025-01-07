@@ -2,24 +2,29 @@ package com.example.emergency_android_app
 
 import android.Manifest
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
+import android.util.Log
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
-import android.widget.Button // Add this import to work with Button
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var locationServicesStatus: TextView
     private lateinit var locationServicesLabel: TextView
-    private lateinit var locationHandler: LocationHandler
+    private lateinit var locationStatusReceiver: BroadcastReceiver
     private var locationDialog: AlertDialog? = null
     private lateinit var helpButton: FrameLayout
     private val savedContacts = listOf("1234567890", "0987654321") // hardcoded for now
@@ -35,13 +40,12 @@ class MainActivity : AppCompatActivity() {
     )
     private val permissionsRequestCode = 1
 
-    // Declare the manage profile button
     private lateinit var manageProfileButton: Button
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
 
         locationServicesStatus = findViewById(R.id.locationServicesStatus)
         locationServicesLabel = findViewById(R.id.locationServicesLabel)
@@ -50,26 +54,21 @@ class MainActivity : AppCompatActivity() {
             GoogleMapsUtils.openGoogleMapsWithSearch(this)
         }
 
-        locationHandler = LocationHandler(this) { isLocationEnabled ->
-            handleLocationStatusChange(isLocationEnabled)
-        }
-
-        locationHandler.start()
+        NotificationUtils.createNotificationChannel(this)
 
         helpButton = findViewById(R.id.helpButton)
 
         helpButton.setOnClickListener {
             if (allPermissionsGranted()) {
+                NotificationUtils.showEmergencyNotification(this)
                 EmergencyUtils.handleEmergency(this, savedContacts)
             } else {
                 requestPermissions()
             }
         }
 
-        // Initialize the "Manage Profile" button
         manageProfileButton = findViewById(R.id.manageProfile)
 
-        // Set up the OnClickListener to navigate to ProfileActivity
         manageProfileButton.setOnClickListener {
             val intent = Intent(this, ProfileActivity::class.java)
             startActivity(intent)
@@ -81,52 +80,26 @@ class MainActivity : AppCompatActivity() {
 
         manageContactsButton = findViewById(R.id.manageContactsButton)
         manageContactsButton.setOnClickListener {
-
-        val intent = Intent(this, ContactsActivity::class.java)
+            val intent = Intent(this, ContactsActivity::class.java)
             startActivity(intent)
         }
 
-    }
-
-    private fun handleLocationStatusChange(isLocationEnabled: Boolean) {
-        if (isLocationEnabled) {
-            updateLocationStatus(true)
-            dismissLocationRequiredDialog()
-        } else {
-            updateLocationStatus(false)
-            showLocationRequiredDialog()
-        }
-    }
-
-    private fun updateLocationStatus(isLocationEnabled: Boolean) {
-        if (isLocationEnabled) {
-            locationServicesStatus.text = "On"
-            locationServicesStatus.setTextColor(getColor(R.color.green))
-        } else {
-            locationServicesStatus.text = "Off"
-            locationServicesStatus.setTextColor(getColor(R.color.red))
-        }
-    }
-
-    private fun showLocationRequiredDialog() {
-        if (locationDialog?.isShowing == true) return
-
-        locationDialog = AlertDialog.Builder(this)
-            .setTitle("Location Required")
-            .setMessage("This app requires location services to be enabled. Please turn on location services.")
-            .setCancelable(false)
-            .setPositiveButton("Enable") { _, _ ->
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivity(intent)
+        locationStatusReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val isLocationEnabled = intent?.getBooleanExtra("isLocationEnabled", false) ?: false
+                Log.d("MainActivity", "Received location status broadcast: $isLocationEnabled")
+                handleLocationStatusChange(isLocationEnabled)
             }
-            .setNegativeButton("Exit App") { _, _ -> finish() }
-            .create()
-        locationDialog?.show()
-    }
+        }
 
-    private fun dismissLocationRequiredDialog() {
-        locationDialog?.dismiss()
-        locationDialog = null
+        val filter = IntentFilter(LocationForegroundService.BROADCAST_LOCATION_STATUS)
+        LocalBroadcastManager.getInstance(this).registerReceiver(locationStatusReceiver, filter)
+        Log.d("MainActivity", "Receiver registered successfully with LocalBroadcastManager")
+
+        val serviceIntent = Intent(this, LocationForegroundService::class.java)
+        serviceIntent.action = LocationForegroundService.ACTION_START
+        startService(serviceIntent)
+        Log.d("MainActivity", "LocationForegroundService started")
     }
 
     private fun allPermissionsGranted(): Boolean {
@@ -182,9 +155,61 @@ class MainActivity : AppCompatActivity() {
     private fun refreshContactsList() {
     }
 
+    private fun handleLocationStatusChange(isLocationEnabled: Boolean) {
+        Log.d("MainActivity", "Handling location status change: $isLocationEnabled")
+        if (isLocationEnabled) {
+            updateLocationStatus(true)
+            dismissLocationRequiredDialog()
+        } else {
+            updateLocationStatus(false)
+            showLocationRequiredDialog()
+        }
+    }
+
+    private fun updateLocationStatus(isLocationEnabled: Boolean) {
+        if (isLocationEnabled) {
+            Log.d("MainActivity", "Location is ON")
+            locationServicesStatus.text = "On"
+            locationServicesStatus.setTextColor(getColor(R.color.green))
+        } else {
+            Log.d("MainActivity", "Location is OFF")
+            locationServicesStatus.text = "Off"
+            locationServicesStatus.setTextColor(getColor(R.color.red))
+        }
+    }
+
+    private fun showLocationRequiredDialog() {
+        if (locationDialog?.isShowing == true) return
+
+        Log.d("MainActivity", "Showing location required dialog")
+        locationDialog = AlertDialog.Builder(this)
+            .setTitle("Location Required")
+            .setMessage("This app requires location services to be enabled. Please turn on location services.")
+            .setCancelable(false)
+            .setPositiveButton("Enable") { _, _ ->
+                val intent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            }
+            .setNegativeButton("Exit App") { _, _ -> finish() }
+            .create()
+        locationDialog?.show()
+    }
+
+    private fun dismissLocationRequiredDialog() {
+        Log.d("MainActivity", "Dismissing location required dialog")
+        locationDialog?.dismiss()
+        locationDialog = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        locationHandler.stop()
         dismissLocationRequiredDialog()
+        val serviceIntent = Intent(this, LocationForegroundService::class.java)
+        serviceIntent.action = LocationForegroundService.ACTION_STOP
+        Log.d("MainActivity", "Stopping foreground service")
+        startService(serviceIntent)
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(locationStatusReceiver)
+        Log.d("MainActivity", "Receiver unregistered")
     }
 }

@@ -8,7 +8,7 @@ import androidx.appcompat.app.AlertDialog
 object GoogleMapsUtils {
 
     fun openGoogleMapsWithSearch(context: Context) {
-        val query = "hospitals and police stations near me"
+        val query = "hospitals and police stations near me open now"
         val uri = Uri.parse("geo:0,0?q=$query")
         val intent = Intent(Intent.ACTION_VIEW, uri)
         intent.setPackage("com.google.android.apps.maps")
