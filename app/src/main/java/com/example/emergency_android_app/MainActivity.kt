@@ -2,14 +2,17 @@ package com.example.emergency_android_app
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
+import android.widget.Switch
 import android.widget.TextView
-import android.widget.Button // Add this import to work with Button
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -38,14 +41,28 @@ class MainActivity : AppCompatActivity() {
     // Declare the manage profile button
     private lateinit var manageProfileButton: Button
 
+    private lateinit var themeSwitch: Switch
+
+    // SharedPreferences keys
+    private companion object {
+        const val PREFS_NAME = "user_prefs"
+        const val KEY_DARK_MODE = "isDarkMode"
+        const val TAG = "MainActivity" // For logging
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+        // Initialize views
         locationServicesStatus = findViewById(R.id.locationServicesStatus)
         locationServicesLabel = findViewById(R.id.locationServicesLabel)
+        helpButton = findViewById(R.id.helpButton)
+        manageProfileButton = findViewById(R.id.manageProfile)
+        manageContactsButton = findViewById(R.id.manageContactsButton)
+        themeSwitch = findViewById(R.id.themeSwitch)
 
+        // Set up location services
         locationServicesLabel.setOnClickListener {
             GoogleMapsUtils.openGoogleMapsWithSearch(this)
         }
@@ -53,11 +70,9 @@ class MainActivity : AppCompatActivity() {
         locationHandler = LocationHandler(this) { isLocationEnabled ->
             handleLocationStatusChange(isLocationEnabled)
         }
-
         locationHandler.start()
 
-        helpButton = findViewById(R.id.helpButton)
-
+        // Set up help button
         helpButton.setOnClickListener {
             if (allPermissionsGranted()) {
                 EmergencyUtils.handleEmergency(this, savedContacts)
@@ -66,26 +81,30 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Initialize the "Manage Profile" button
-        manageProfileButton = findViewById(R.id.manageProfile)
-
-        // Set up the OnClickListener to navigate to ProfileActivity
+        // Set up manage profile button
         manageProfileButton.setOnClickListener {
             val intent = Intent(this, ProfileActivity::class.java)
             startActivity(intent)
         }
 
-        if (!allPermissionsGranted()) {
-            requestPermissions()
-        }
-
-        manageContactsButton = findViewById(R.id.manageContactsButton)
+        // Set up manage contacts button
         manageContactsButton.setOnClickListener {
-
-        val intent = Intent(this, ContactsActivity::class.java)
+            val intent = Intent(this, ContactsActivity::class.java)
             startActivity(intent)
         }
 
+        // Set up theme switch
+        val isDarkMode = getDarkMode(this)
+        themeSwitch.isChecked = isDarkMode
+        applyBackgroundColor(isDarkMode) // Apply the initial background color
+        themeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            toggleTheme(isChecked)
+        }
+
+        // Request permissions if not granted
+        if (!allPermissionsGranted()) {
+            requestPermissions()
+        }
     }
 
     private fun handleLocationStatusChange(isLocationEnabled: Boolean) {
@@ -139,9 +158,7 @@ class MainActivity : AppCompatActivity() {
         ActivityCompat.requestPermissions(this, requiredPermissions, permissionsRequestCode)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == permissionsRequestCode) {
@@ -180,6 +197,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshContactsList() {
+        // Implement logic to refresh the contacts list UI
+    }
+
+    private fun toggleTheme(isDarkMode: Boolean) {
+        Log.d(TAG, "Toggle theme: isDarkMode = $isDarkMode")
+        saveDarkMode(this, isDarkMode)
+        applyBackgroundColor(isDarkMode) // Apply the new background color
+    }
+
+    private fun applyBackgroundColor(isDarkMode: Boolean) {
+        val backgroundColor = if (isDarkMode) R.color.gray_800 else R.color.light_gray
+        findViewById<RelativeLayout>(R.id.rootLayout).setBackgroundResource(backgroundColor)
+    }
+
+    private fun saveDarkMode(context: Context, isDarkMode: Boolean) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_DARK_MODE, isDarkMode).apply()
+    }
+
+    private fun getDarkMode(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_DARK_MODE, false) // Default is light mode
     }
 
     override fun onDestroy() {

@@ -2,11 +2,13 @@ package com.example.emergency_android_app
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
@@ -19,18 +21,31 @@ class ContactsActivity : AppCompatActivity() {
     private lateinit var adapter: ArrayAdapter<String>
     private val agendaRequestCode = 2
 
+    // SharedPreferences keys
+    private companion object {
+        const val PREFS_NAME = "user_prefs"
+        const val KEY_DARK_MODE = "isDarkMode"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
 
+        // Initialize views
         contactsListView = findViewById(R.id.contactsListView)
         addContactButton = findViewById(R.id.addContactButton)
         deleteContactButton = findViewById(R.id.deleteContactButton)
 
+        // Apply the initial background color
+        val isDarkMode = getDarkMode(this)
+        applyBackgroundColor(isDarkMode)
+
+        // Set up the adapter for the ListView
         adapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, contactsList)
         contactsListView.adapter = adapter
         contactsListView.choiceMode = ListView.CHOICE_MODE_MULTIPLE
 
+        // Set up button click listeners
         addContactButton.setOnClickListener {
             val intent = Intent(this, AgendaActivity::class.java)
             startActivityForResult(intent, agendaRequestCode)
@@ -76,5 +91,15 @@ class ContactsActivity : AppCompatActivity() {
                 Toast.makeText(this, "No contacts selected", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun getDarkMode(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_DARK_MODE, false) // Default is light mode
+    }
+
+    private fun applyBackgroundColor(isDarkMode: Boolean) {
+        val backgroundColor = if (isDarkMode) R.color.gray_800 else R.color.light_gray
+        findViewById<RelativeLayout>(R.id.rootLayout).setBackgroundResource(backgroundColor)
     }
 }

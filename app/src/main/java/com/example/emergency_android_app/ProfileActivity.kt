@@ -1,5 +1,6 @@
 package com.example.emergency_android_app
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -38,11 +39,15 @@ class ProfileActivity : AppCompatActivity() {
     private val GALLERY_REQUEST_CODE = 1002
     private lateinit var imageUri: Uri
 
+    private companion object {
+        const val PREFS_NAME = "user_prefs"
+        const val KEY_DARK_MODE = "isDarkMode"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
 
-        // Initialize UI elements
         profileImage = findViewById(R.id.profileImage)
         nameInput = findViewById(R.id.nameInput)
         dobInput = findViewById(R.id.dobInput)
@@ -54,27 +59,25 @@ class ProfileActivity : AppCompatActivity() {
         selectDiseasesButton = findViewById(R.id.addDiseaseButton)
         saveProfileButton = findViewById(R.id.saveProfileButton)
 
-        // Profile image click listener
+        val isDarkMode = getDarkMode(this)
+        applyBackgroundColor(isDarkMode)
+
         profileImage.setOnClickListener {
             showImagePickerDialog()
         }
 
-        // Select Allergies button click listener
         selectAllergiesButton.setOnClickListener {
             showSelectionDialog("Select Allergies", predefinedAllergies, selectedAllergies) { updateSelectedAllergies() }
         }
 
-        // Select Diseases button click listener
         selectDiseasesButton.setOnClickListener {
             showSelectionDialog("Select Diseases", predefinedDiseases, selectedDiseases) { updateSelectedDiseases() }
         }
 
-        // Save profile button click listener
         saveProfileButton.setOnClickListener {
             saveProfile()
         }
 
-        // Check for permissions
         checkPermissions()
     }
 
@@ -90,7 +93,6 @@ class ProfileActivity : AppCompatActivity() {
         }
         builder.show()
     }
-
 
     private fun showSelectionDialog(
         title: String,
@@ -129,13 +131,11 @@ class ProfileActivity : AppCompatActivity() {
         val genderId = genderRadioGroup.checkedRadioButtonId
         val gender = if (genderId != -1) findViewById<RadioButton>(genderId).text.toString() else "Not specified"
 
-        // Validate input fields
         if (name.isEmpty() || dob.isEmpty() || height.isEmpty()) {
             Toast.makeText(this, "Please fill all the required fields", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Show confirmation dialog
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Profile Saved")
         builder.setMessage(
@@ -235,5 +235,15 @@ class ProfileActivity : AppCompatActivity() {
         if (requestCode == 1001 && (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED)) {
             Toast.makeText(this, "Permissions are required to access the camera and storage", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun getDarkMode(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_DARK_MODE, false)
+    }
+
+    private fun applyBackgroundColor(isDarkMode: Boolean) {
+        val backgroundColor = if (isDarkMode) R.color.gray_800 else R.color.light_gray
+        findViewById<ScrollView>(R.id.rootLayout).setBackgroundResource(backgroundColor)
     }
 }

@@ -2,130 +2,139 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_gray"
     tools:context=".MainActivity">
 
-    <FrameLayout
-        android:id="@+id/locationServicesContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="5dp"
-        android:background="@drawable/manage_contacts_background"
-        android:layout_marginHorizontal="30dp">
+    <!-- Location Services Frame -->
+<FrameLayout
+android:id="@+id/locationServicesContainer"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:layout_marginTop="16dp"
+android:paddingHorizontal="20dp"
+android:paddingVertical="5dp"
+android:background="@drawable/manage_contacts_background"
+android:layout_marginHorizontal="30dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/locationServicesLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Location Services:"
-                android:textSize="14sp"
-                android:textColor="#000"
-                android:layout_marginEnd="8dp"
-                android:textStyle="bold"
-                />
-
-            <TextView
-                android:id="@+id/locationServicesStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="On"
-                android:textSize="14sp"
-                android:textColor="#00C853"
-                android:layout_marginEnd="8dp"
-                android:textStyle="bold"/>
-
-            <ImageView
-                android:id="@+id/profilePicture"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center" />
-<!--            android:src="@drawable/ic_profile"
-<!-            android:scaleType="centerCrop"-->
-<!--            android:background="@drawable/circle_background"-->
-<!--            android:contentDescription="Profile Picture" />-->
-        </LinearLayout>
-    </FrameLayout>
-
-
-    <FrameLayout
-        android:id="@+id/helpButton"
-        android:layout_width="270dp"
-        android:layout_height="270dp"
-        android:layout_centerInParent="true"
-        android:clipToOutline="true"
-        android:elevation="4dp">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/circle_outer" />
-
-        <!-- Middle Layer (Darker Pink) -->
-        <View
-            android:layout_width="240dp"
-            android:layout_height="240dp"
-            android:layout_gravity="center"
-            android:background="@drawable/circle_middle" />
-
-        <View
-            android:layout_width="210dp"
-            android:layout_height="210dp"
-            android:layout_gravity="center"
-            android:background="@drawable/circle_inner" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Help"
-            android:textSize="44sp"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"/>
-    </FrameLayout>
-
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/manageContactsButton"
+    <TextView
+        android:id="@+id/locationServicesLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/helpButton"
-        android:layout_marginTop="140dp"
-        android:text="Manage Contacts"
-        android:textSize="16sp"
+        android:text="Location Services:"
+        android:textSize="14sp"
         android:textColor="#000"
-        android:background="@drawable/manage_contacts_background"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
-        android:drawableLeft="@drawable/contacts"
-        android:drawablePadding="16dp"/>
+        android:layout_marginEnd="8dp"
+        android:textStyle="bold" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/manageProfile"
+    <TextView
+        android:id="@+id/locationServicesStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/helpButton"
-        android:layout_marginTop="80dp"
-        android:text="Manage Profile"
-        android:drawableLeft="@drawable/profile"
-        android:drawablePadding="16dp"
-        android:textSize="16sp"
-        android:textColor="#000"
-        android:background="@drawable/manage_contacts_background"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="7dp" />
+        android:text="On"
+        android:textSize="14sp"
+        android:textColor="#00C853"
+        android:layout_marginEnd="8dp"
+        android:textStyle="bold" />
 
+    <ImageView
+        android:id="@+id/profilePicture"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center" />
+</LinearLayout>
+</FrameLayout>
 
-</RelativeLayout>
+    <!-- Help Button Frame -->
+<FrameLayout
+android:id="@+id/helpButton"
+android:layout_width="270dp"
+android:layout_height="270dp"
+android:layout_centerInParent="true"
+android:clipToOutline="true"
+android:elevation="4dp">
+
+<View
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/circle_outer" />
+
+<View
+    android:layout_width="240dp"
+    android:layout_height="240dp"
+    android:layout_gravity="center"
+    android:background="@drawable/circle_middle" />
+
+<View
+    android:layout_width="210dp"
+    android:layout_height="210dp"
+    android:layout_gravity="center"
+    android:background="@drawable/circle_inner" />
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:text="Help"
+    android:textSize="44sp"
+    android:textColor="#FFFFFF"
+    android:textStyle="bold"
+    android:letterSpacing="0.1" />
+</FrameLayout>
+
+    <!-- Manage Contacts Button -->
+<androidx.appcompat.widget.AppCompatButton
+android:id="@+id/manageContactsButton"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_centerHorizontal="true"
+android:layout_below="@id/helpButton"
+android:layout_marginTop="140dp"
+android:text="Manage Contacts"
+android:textSize="16sp"
+android:textColor="#000"
+android:background="@drawable/manage_contacts_background"
+android:paddingHorizontal="16dp"
+android:paddingVertical="8dp"
+android:drawableLeft="@drawable/contacts"
+android:drawablePadding="16dp" />
+
+    <!-- Manage Profile Button -->
+<androidx.appcompat.widget.AppCompatButton
+android:id="@+id/manageProfile"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_centerHorizontal="true"
+android:layout_below="@id/helpButton"
+android:layout_marginTop="80dp"
+android:text="Manage Profile"
+android:drawableLeft="@drawable/profile"
+android:drawablePadding="16dp"
+android:textSize="16sp"
+android:textColor="#000"
+android:background="@drawable/manage_contacts_background"
+android:paddingHorizontal="16dp"
+android:paddingVertical="7dp" />
+
+    <!-- Theme Toggle Switch -->
+<Switch
+android:id="@+id/themeSwitch"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_alignParentEnd="true"
+android:layout_marginTop="20dp"
+android:layout_marginEnd="20dp"
+android:text="Dark Mode"
+android:textColor="#000"
+android:checked="false"
+tools:ignore="HardcodedText,UseSwitchCompatOrMaterialXml" />
+
+    </RelativeLayout>
