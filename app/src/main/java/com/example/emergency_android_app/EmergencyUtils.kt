@@ -1,23 +1,24 @@
 package com.example.emergency_android_app
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.telephony.SmsManager
+import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 
 object EmergencyUtils {
 
     private val emergencyNumber = "456872" // test
+    private const val TAG = "EmergencyUtils"
 
     fun handleEmergency(context: Context, savedContacts: List<String>) {
+        Log.d(TAG, "handleEmergency called with contacts: $savedContacts")
+
         fetchLocation(context) { location ->
             val locationMessage = if (location != null) {
                 "Help! My current location is: https://maps.google.com/?q=${location.latitude},${location.longitude}"
@@ -25,9 +26,11 @@ object EmergencyUtils {
                 "Help! I need assistance."
             }
 
-            savedContacts.forEach { contact ->
-                sendSMS(context, contact, locationMessage)
-            }
+            val intent = Intent(context, SmsSendingService::class.java)
+            intent.putStringArrayListExtra("contacts", ArrayList(savedContacts))
+            intent.putExtra("message", locationMessage)
+            context.startService(intent)
+            Log.d(TAG, "SmsSendingService started with message: $locationMessage")
 
             makeEmergencyCall(context)
         }
@@ -36,57 +39,58 @@ object EmergencyUtils {
     private fun fetchLocation(context: Context, onLocationFetched: (Location?) -> Unit) {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Location permissions not granted")
             onLocationFetched(null)
             return
         }
 
         val locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
+                Log.d(TAG, "Location received: ${location.latitude}, ${location.longitude}")
                 onLocationFetched(location)
                 locationManager.removeUpdates(this)
             }
 
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-            override fun onProviderEnabled(provider: String) {}
-            override fun onProviderDisabled(provider: String) {}
+            override fun onProviderEnabled(provider: String) {
+                Log.d(TAG, "Location provider enabled: $provider")
+            }
+
+            override fun onProviderDisabled(provider: String) {
+                Log.d(TAG, "Location provider disabled: $provider")
+            }
         }
 
         try {
             locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, locationListener, null)
+            Log.d(TAG, "Requested single location update")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Failed to request location update", e)
             onLocationFetched(null)
         }
     }
 
-    private fun sendSMS(context: Context, contact: String, message: String) {
-        try {
-            val smsManager = SmsManager.getDefault()
-            smsManager.sendTextMessage(contact, null, message, null, null)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            showErrorDialog(context, "Failed to send SMS to $contact")
-        }
-    }
-
     private fun makeEmergencyCall(context: Context) {
+        Log.d(TAG, "makeEmergencyCall called")
         try {
             val callIntent = Intent(Intent.ACTION_CALL)
             callIntent.data = Uri.parse("tel:$emergencyNumber")
-            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 context.startActivity(callIntent)
+                Log.d(TAG, "Emergency call started to $emergencyNumber")
             } else {
+                Log.w(TAG, "Call permission not granted")
                 showErrorDialog(context, "Permission to make a call is not granted.")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Failed to make an emergency call", e)
             showErrorDialog(context, "Failed to make an emergency call.")
         }
     }
 
     private fun showErrorDialog(context: Context, message: String) {
+        Log.e(TAG, "Showing error dialog: $message")
         val dialog = AlertDialog.Builder(context)
             .setTitle("Error")
             .setMessage(message)

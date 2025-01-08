@@ -3,32 +3,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.emergency_android_app">
 
-    <!-- Permissions for storage -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <!-- Permissions for SMS, Location, and Phone Calls -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
-
-    <!-- Optional: For accessing contacts (if required by your app) -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-
-    <!-- Optional: For accessing the internet (if required by your app) -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Feature requirements -->
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <!-- Query for Google Maps (optional, if needed) -->
     <queries>
-        <!-- Explicitly declare that the app can query for Google Maps -->
         <package android:name="com.google.android.apps.maps" />
     </queries>
 
@@ -41,7 +35,16 @@
         android:theme="@style/Theme.EmergencyAndroidApp"
         tools:targetApi="31">
 
-        <!-- Main Activity (entry point of the app) -->
+        <service
+            android:name=".LocationForegroundService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
+
+        <service
+            android:name=".SmsSendingService"
+            android:enabled="true"
+            android:exported="true" />
+
         <activity android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -50,13 +53,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Profile Activity (new activity to add) -->
         <activity android:name=".ProfileActivity"
             android:exported="true">
-            <!-- Add intent filters here if needed -->
         </activity>
 
-        <!-- FileProvider for handling images -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.emergency_android_app.fileprovider"
