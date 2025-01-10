@@ -6,14 +6,13 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
-import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 
 object EmergencyUtils {
 
-    private val emergencyNumber = "456872" // test
+    private const val EMERGENCY_NR = "456872" // test
     private const val TAG = "EmergencyUtils"
 
     fun handleEmergency(context: Context, savedContacts: List<String>) {
@@ -75,10 +74,10 @@ object EmergencyUtils {
         Log.d(TAG, "makeEmergencyCall called")
         try {
             val callIntent = Intent(Intent.ACTION_CALL)
-            callIntent.data = Uri.parse("tel:$emergencyNumber")
+            callIntent.data = Uri.parse("tel:$EMERGENCY_NR")
             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 context.startActivity(callIntent)
-                Log.d(TAG, "Emergency call started to $emergencyNumber")
+                Log.d(TAG, "Emergency call started to $EMERGENCY_NR")
             } else {
                 Log.w(TAG, "Call permission not granted")
                 showErrorDialog(context, "Permission to make a call is not granted.")

@@ -18,7 +18,7 @@ import java.io.File
 import java.io.IOException
 
 class ProfileActivity : AppCompatActivity() {
-
+    private lateinit var dbHelper: ProfileDatabaseHelper
     private lateinit var profileImage: ImageView
     private lateinit var nameInput: EditText
     private lateinit var dobInput: EditText
@@ -32,8 +32,13 @@ class ProfileActivity : AppCompatActivity() {
 
     private val selectedAllergies = mutableListOf<String>()
     private val selectedDiseases = mutableListOf<String>()
-    private val predefinedAllergies = listOf("Peanuts", "Shellfish", "Dairy", "Gluten", "Eggs", "Soy", "Tree Nuts", "Wheat", "Fish", "Others")
-    private val predefinedDiseases = listOf("Diabetes", "Hypertension", "Asthma", "Cancer", "Heart Disease", "Epilepsy", "Thyroid", "Arthritis", "Anemia", "Depression")
+    private val predefinedAllergies = listOf(
+        "Peanuts", "Shellfish", "Dairy", "Gluten", "Eggs", "Soy", "Tree Nuts", "Wheat", "Fish", "Others"
+    )
+    private val predefinedDiseases = listOf(
+        "Diabetes", "Hypertension", "Asthma", "Cancer", "Heart Disease", "Epilepsy", "Thyroid",
+        "Arthritis", "Anemia", "Depression"
+    )
 
     private val CAMERA_REQUEST_CODE = 1001
     private val GALLERY_REQUEST_CODE = 1002
@@ -47,6 +52,8 @@ class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
+
+        dbHelper = ProfileDatabaseHelper(this)
 
         profileImage = findViewById(R.id.profileImage)
         nameInput = findViewById(R.id.nameInput)
@@ -76,6 +83,30 @@ class ProfileActivity : AppCompatActivity() {
 
         saveProfileButton.setOnClickListener {
             saveProfile()
+        }
+
+        // Load saved profile data
+        val savedProfile = dbHelper.getProfile()
+        if (savedProfile != null) {
+            nameInput.setText(savedProfile.name)
+            dobInput.setText(savedProfile.dob)
+            heightInput.setText(savedProfile.height)
+
+            // Set gender
+            for (i in 0 until genderRadioGroup.childCount) {
+                val radioButton = genderRadioGroup.getChildAt(i) as RadioButton
+                if (radioButton.text.toString() == savedProfile.gender) {
+                    radioButton.isChecked = true
+                    break
+                }
+            }
+
+            // Set allergies and diseases
+            selectedAllergies.addAll(savedProfile.allergies.split(", "))
+            updateSelectedAllergies()
+
+            selectedDiseases.addAll(savedProfile.diseases.split(", "))
+            updateSelectedDiseases()
         }
 
         checkPermissions()
@@ -136,34 +167,17 @@ class ProfileActivity : AppCompatActivity() {
             return
         }
 
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Profile Saved")
-        builder.setMessage(
-            """
-            Name: $name
-            DOB: $dob
-            Gender: $gender
-            Height: $height cm
-            Allergies: ${if (selectedAllergies.isEmpty()) "None" else selectedAllergies.joinToString(", ")}
-            Diseases: ${if (selectedDiseases.isEmpty()) "None" else selectedDiseases.joinToString(", ")}
-            """.trimIndent()
+        val profile = Profile(
+            name = name,
+            dob = dob,
+            gender = gender,
+            height = height,
+            allergies = selectedAllergies.joinToString(", "),
+            diseases = selectedDiseases.joinToString(", ")
         )
-        builder.setPositiveButton("OK", DialogInterface.OnClickListener { dialog, _ -> dialog.dismiss() })
-        builder.show()
-    }
 
-    private fun takeSelfie() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(packageManager) != null) {
-            try {
-                val photoFile: File = createImageFile()
-                imageUri = FileProvider.getUriForFile(this, "com.example.emergency_android_app.fileprovider", photoFile)
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-                startActivityForResult(intent, CAMERA_REQUEST_CODE)
-            } catch (ex: IOException) {
-                Toast.makeText(this, "Error creating image file", Toast.LENGTH_SHORT).show()
-            }
-        }
+        dbHelper.insertProfile(profile)
+        Toast.makeText(this, "Profile saved to database!", Toast.LENGTH_SHORT).show()
     }
 
     private fun chooseFromGallery() {
@@ -176,64 +190,15 @@ class ProfileActivity : AppCompatActivity() {
         profileImage.setImageResource(R.drawable.ic_profile_placeholder)
     }
 
-    private fun createImageFile(): File {
-        val storageDir = filesDir
-        return File.createTempFile("profile_image", ".jpg", storageDir)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
-            when (requestCode) {
-                CAMERA_REQUEST_CODE -> {
-                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, imageUri)
-                    val circularBitmap = getCircularBitmap(bitmap)
-                    profileImage.setImageBitmap(circularBitmap)
-                }
-                GALLERY_REQUEST_CODE -> {
-                    val selectedImageUri = data?.data
-                    if (selectedImageUri != null) {
-                        val inputStream = contentResolver.openInputStream(selectedImageUri)
-                        val bitmap = BitmapFactory.decodeStream(inputStream)
-                        val circularBitmap = getCircularBitmap(bitmap)
-                        profileImage.setImageBitmap(circularBitmap)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getCircularBitmap(bitmap: Bitmap): Bitmap {
-        val size = minOf(bitmap.width, bitmap.height)
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-
-        val paint = Paint().apply {
-            isAntiAlias = true
-            shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
-
-        Canvas(output).apply {
-            drawCircle(size / 2f, size / 2f, size / 2f, paint)
-        }
-
-        return output
-    }
-
     private fun checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.READ_EXTERNAL_STORAGE),
                 1001
             )
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001 && (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED)) {
-            Toast.makeText(this, "Permissions are required to access the camera and storage", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -245,5 +210,10 @@ class ProfileActivity : AppCompatActivity() {
     private fun applyBackgroundColor(isDarkMode: Boolean) {
         val backgroundColor = if (isDarkMode) R.color.gray_800 else R.color.light_gray
         findViewById<ScrollView>(R.id.rootLayout).setBackgroundResource(backgroundColor)
+    }
+
+    override fun onDestroy() {
+        dbHelper.close()
+        super.onDestroy()
     }
 }
