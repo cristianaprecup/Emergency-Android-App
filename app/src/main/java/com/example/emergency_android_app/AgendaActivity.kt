@@ -17,10 +17,13 @@ class AgendaActivity : AppCompatActivity() {
     private val agendaContacts = listOf(
         "Ela: 123-456-7890",
         "Huda: 234-567-8901",
-        "Cristiana: 345-678-9012",
+        "Cristiana: 345-678-9013",
         "Andrei: 163-456-3390",
         "Robert: 258-567-8900",
-        "Diana: 329-698-9092"
+        "Diana: 315-698-2092",
+        "Luisa: 345-222-9012",
+        "Alex: 197-456-2290",
+        "Ionut: 233-567-8000"
     )
 
     // SharedPreferences keys
@@ -33,20 +36,16 @@ class AgendaActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_agenda)
 
-        // Initialize views
         agendaListView = findViewById(R.id.agendaListView)
         confirmSelectionButton = findViewById(R.id.confirmSelectionButton)
 
-        // Apply the initial background color
         val isDarkMode = getDarkMode(this)
         applyBackgroundColor(isDarkMode)
 
-        // Set up the adapter for the ListView
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, agendaContacts)
         agendaListView.adapter = adapter
         agendaListView.choiceMode = ListView.CHOICE_MODE_MULTIPLE
 
-        // Set up button click listener
         confirmSelectionButton.setOnClickListener {
             val selectedContacts = mutableListOf<String>()
             val checkedPositions = agendaListView.checkedItemPositions

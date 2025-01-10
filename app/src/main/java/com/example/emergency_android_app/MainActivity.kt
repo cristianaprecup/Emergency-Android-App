@@ -32,9 +32,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var helpButton: FrameLayout
     private val savedContacts = listOf("1234567890", "0987654321") // hardcoded for now
     private lateinit var addContactButton: Button
-    private val contactsList = mutableListOf("1234567890", "0987654321")
     private val addContactRequestCode = 1
     private lateinit var manageContactsButton: Button
+    private lateinit var dbHelper: ContactsDatabaseHelper
 
     private val requiredPermissions = arrayOf(
         Manifest.permission.SEND_SMS,
@@ -64,6 +64,8 @@ class MainActivity : AppCompatActivity() {
         manageContactsButton = findViewById(R.id.manageContactsButton)
         themeSwitch = findViewById(R.id.themeSwitch)
 
+        dbHelper = ContactsDatabaseHelper(this)
+
         val isDarkMode = getDarkMode(this)
         themeSwitch.isChecked = isDarkMode
         applyBackgroundColor(isDarkMode)
@@ -78,9 +80,16 @@ class MainActivity : AppCompatActivity() {
         NotificationUtils.createNotificationChannel(this)
 
         helpButton.setOnClickListener {
-            if (allPermissionsGranted()) {
+            val contacts = getContacts()
+            if (contacts.isEmpty()) {
+                AlertDialog.Builder(this)
+                    .setTitle("No Contacts Found")
+                    .setMessage("Please add contacts before using the emergency feature.")
+                    .setPositiveButton("OK", null)
+                    .show()
+            } else if (allPermissionsGranted()) {
                 NotificationUtils.showEmergencyNotification(this)
-                EmergencyUtils.handleEmergency(this, savedContacts)
+                EmergencyUtils.handleEmergency(this, contacts)
             } else {
                 requestPermissions()
             }
@@ -162,7 +171,6 @@ class MainActivity : AppCompatActivity() {
             val contactName = data?.getStringExtra("contact_name")
             val contactPhone = data?.getStringExtra("contact_phone")
             if (contactName != null && contactPhone != null) {
-                contactsList.add(contactPhone)
                 refreshContactsList()
             }
         }
@@ -231,6 +239,10 @@ class MainActivity : AppCompatActivity() {
     private fun getDarkMode(context: Context): Boolean {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getBoolean(KEY_DARK_MODE, false)
+    }
+
+    private fun getContacts(): List<String> {
+        return dbHelper.getAllContacts()
     }
 
     override fun onDestroy() {

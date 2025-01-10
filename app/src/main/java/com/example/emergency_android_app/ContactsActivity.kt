@@ -26,6 +26,7 @@ class ContactsActivity : AppCompatActivity() {
         const val PREFS_NAME = "user_prefs"
         const val KEY_DARK_MODE = "isDarkMode"
     }
+    private lateinit var dbHelper: ContactsDatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +36,14 @@ class ContactsActivity : AppCompatActivity() {
         contactsListView = findViewById(R.id.contactsListView)
         addContactButton = findViewById(R.id.addContactButton)
         deleteContactButton = findViewById(R.id.deleteContactButton)
+
+        dbHelper = ContactsDatabaseHelper(this)
+
+        loadContactsFromDatabase()
+
+        dbHelper = ContactsDatabaseHelper(this)
+
+        loadContactsFromDatabase()
 
         // Apply the initial background color
         val isDarkMode = getDarkMode(this)
@@ -56,6 +65,11 @@ class ContactsActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadContactsFromDatabase() {
+        contactsList.clear()
+        contactsList.addAll(dbHelper.getAllContacts())
+    }
+
     private fun deleteSelectedContacts() {
         val selectedPositions = contactsListView.checkedItemPositions
         if (selectedPositions.size() > 0) {
@@ -65,7 +79,9 @@ class ContactsActivity : AppCompatActivity() {
                 .setPositiveButton("Yes") { _, _ ->
                     for (i in selectedPositions.size() - 1 downTo 0) {
                         if (selectedPositions.valueAt(i)) {
+                            val contactToDelete = contactsList[selectedPositions.keyAt(i)]
                             contactsList.removeAt(selectedPositions.keyAt(i))
+                            dbHelper.deleteContact(contactToDelete)
                         }
                     }
                     adapter.notifyDataSetChanged()
@@ -84,7 +100,12 @@ class ContactsActivity : AppCompatActivity() {
         if (requestCode == agendaRequestCode && resultCode == Activity.RESULT_OK) {
             val selectedContacts = data?.getStringArrayListExtra("selected_contacts")
             if (!selectedContacts.isNullOrEmpty()) {
-                contactsList.addAll(selectedContacts)
+                for (contact in selectedContacts) {
+                    if (!contactsList.contains(contact)) {
+                        contactsList.add(contact)
+                        dbHelper.addContact(contact)
+                    }
+                }
                 adapter.notifyDataSetChanged()
                 Toast.makeText(this, "Contacts added: ${selectedContacts.joinToString(", ")}", Toast.LENGTH_SHORT).show()
             } else {
@@ -96,6 +117,12 @@ class ContactsActivity : AppCompatActivity() {
     private fun getDarkMode(context: Context): Boolean {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getBoolean(KEY_DARK_MODE, false) // Default is light mode
+    }
+
+
+    override fun onDestroy() {
+        dbHelper.close()
+        super.onDestroy()
     }
 
     private fun applyBackgroundColor(isDarkMode: Boolean) {
