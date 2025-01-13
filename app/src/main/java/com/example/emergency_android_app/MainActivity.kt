@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import android.provider.ContactsContract
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,6 +36,9 @@ class MainActivity : AppCompatActivity() {
     private val addContactRequestCode = 1
     private lateinit var manageContactsButton: Button
     private lateinit var dbHelper: ContactsDatabaseHelper
+    private val pickContactRequestCode = 2
+
+
 
     private val requiredPermissions = arrayOf(
         Manifest.permission.SEND_SMS,
@@ -253,4 +257,6 @@ class MainActivity : AppCompatActivity() {
         startService(serviceIntent)
         LocalBroadcastManager.getInstance(this).unregisterReceiver(locationStatusReceiver)
     }
+
+
 }
