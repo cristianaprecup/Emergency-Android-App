@@ -1,11 +1,8 @@
 package com.example.emergency_android_app
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.*
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.*
@@ -13,9 +10,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import java.io.File
-import java.io.IOException
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var dbHelper: ProfileDatabaseHelper
@@ -40,9 +34,7 @@ class ProfileActivity : AppCompatActivity() {
         "Arthritis", "Anemia", "Depression"
     )
 
-    private val CAMERA_REQUEST_CODE = 1001
     private val GALLERY_REQUEST_CODE = 1002
-    private lateinit var imageUri: Uri
 
     private companion object {
         const val PREFS_NAME = "user_prefs"
@@ -85,14 +77,12 @@ class ProfileActivity : AppCompatActivity() {
             saveProfile()
         }
 
-        // Load saved profile data
         val savedProfile = dbHelper.getProfile()
         if (savedProfile != null) {
             nameInput.setText(savedProfile.name)
             dobInput.setText(savedProfile.dob)
             heightInput.setText(savedProfile.height)
 
-            // Set gender
             for (i in 0 until genderRadioGroup.childCount) {
                 val radioButton = genderRadioGroup.getChildAt(i) as RadioButton
                 if (radioButton.text.toString() == savedProfile.gender) {
@@ -101,7 +91,6 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }
 
-            // Set allergies and diseases
             selectedAllergies.addAll(savedProfile.allergies.split(", "))
             updateSelectedAllergies()
 

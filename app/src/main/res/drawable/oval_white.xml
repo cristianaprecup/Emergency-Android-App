@@ -1,18 +1,16 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Shadow Layer -->
     <item>
         <shape xmlns:android="http://schemas.android.com/apk/res/android">
-            <solid android:color="#66000000"/> <!-- Semi-transparent shadow color -->
-            <corners android:radius="100dp"/> <!-- Rounded corners for shadow -->
-            <size android:width="45dp" android:height="45dp"/> <!-- Larger size for shadow to spread -->
+            <solid android:color="#66000000"/>
+            <corners android:radius="100dp"/>
+            <size android:width="45dp" android:height="45dp"/>
         </shape>
     </item>
 
-    <!-- White Oval Layer -->
     <item android:left="1dp" android:right="1dp" android:top="1dp" android:bottom="6dp">
         <shape xmlns:android="http://schemas.android.com/apk/res/android">
-            <solid android:color="#FFFFFF"/> <!-- White background -->
-            <corners android:radius="100dp"/> <!-- Rounded corners -->
+            <solid android:color="#FFFFFF"/>
+            <corners android:radius="100dp"/>
         </shape>
     </item>
 </layer-list>

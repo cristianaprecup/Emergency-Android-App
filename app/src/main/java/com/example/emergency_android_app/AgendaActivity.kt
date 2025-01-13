@@ -23,7 +23,6 @@ class AgendaActivity : AppCompatActivity() {
     private lateinit var confirmSelectionButton: Button
     private val agendaContacts = mutableListOf<String>()
 
-    // SharedPreferences keys
     private companion object {
         const val PREFS_NAME = "user_prefs"
         const val KEY_DARK_MODE = "isDarkMode"
@@ -40,7 +39,6 @@ class AgendaActivity : AppCompatActivity() {
         val isDarkMode = getDarkMode(this)
         applyBackgroundColor(isDarkMode)
 
-        // Check and request contacts permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_CONTACTS), REQUEST_CONTACTS_PERMISSION)
         } else {

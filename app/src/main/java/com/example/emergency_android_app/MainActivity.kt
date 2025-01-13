@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         const val PREFS_NAME = "user_prefs"
         const val KEY_DARK_MODE = "isDarkMode"
-        const val TAG = "MainActivity" // For logging
+        const val TAG = "MainActivity"
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

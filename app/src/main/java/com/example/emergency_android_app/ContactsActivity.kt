@@ -21,7 +21,6 @@ class ContactsActivity : AppCompatActivity() {
     private lateinit var adapter: ArrayAdapter<String>
     private val agendaRequestCode = 2
 
-    // SharedPreferences keys
     private companion object {
         const val PREFS_NAME = "user_prefs"
         const val KEY_DARK_MODE = "isDarkMode"
@@ -32,7 +31,6 @@ class ContactsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_contacts)
 
-        // Initialize views
         contactsListView = findViewById(R.id.contactsListView)
         addContactButton = findViewById(R.id.addContactButton)
         deleteContactButton = findViewById(R.id.deleteContactButton)
@@ -45,16 +43,13 @@ class ContactsActivity : AppCompatActivity() {
 
         loadContactsFromDatabase()
 
-        // Apply the initial background color
         val isDarkMode = getDarkMode(this)
         applyBackgroundColor(isDarkMode)
 
-        // Set up the adapter for the ListView
         adapter = ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, contactsList)
         contactsListView.adapter = adapter
         contactsListView.choiceMode = ListView.CHOICE_MODE_MULTIPLE
 
-        // Set up button click listeners
         addContactButton.setOnClickListener {
             val intent = Intent(this, AgendaActivity::class.java)
             startActivityForResult(intent, agendaRequestCode)
